@@ -1,0 +1,71 @@
+{
+  "configVersion": "v3",
+  "app": {
+    "appId": 1000022,
+    "appName": "SalatWatch",
+    "appType": "app",
+    "version": {
+      "code": 1,
+      "name": "1.0.0"
+    },
+    "icon": "icon.png",
+    "description": "Islamic Prayer App",
+    "vender": "SalatWatch"
+  },
+  "runtime": {
+    "apiVersion": {
+      "compatible": "2.0",
+      "target": "2.0",
+      "minVersion": "2.0"
+    },
+    "pages": [
+      "page/index",
+      "page/compass",
+      "page/tasbih",
+      "page/settings",
+      "page/zakat",
+      "page/fasting"
+    ],
+    "app-side": {
+      "path": "app-side/index"
+    }
+  },
+  "permissions": [
+    "device:os.geolocation",
+    "device:os.alarm",
+    "device:os.bg_service"
+  ],
+  "defaultLanguage": "en-US",
+  "targets": {
+    "default": {
+      "build": {
+        "apiLevel": "2.0"
+      },
+      "module": {
+        "page": {
+          "pages": [
+            "page/index",
+            "page/compass",
+            "page/tasbih",
+            "page/settings",
+            "page/zakat",
+            "page/fasting"
+          ]
+        },
+        "app-side": {
+          "path": "app-side/index"
+        }
+      },
+      "platforms": [
+        {
+          "name": "254",
+          "deviceSource": 7930112
+        },
+        {
+          "name": "254",
+          "deviceSource": 7930113
+        }
+      ]
+    }
+  }
+}

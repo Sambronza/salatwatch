@@ -1,0 +1,16 @@
+{
+  "name": "salatwatch",
+  "version": "1.0.0",
+  "description": "Islamic Prayer App for Zepp OS – GPS timetable, Qibla compass, Adhan notifications, Tasbih counter, and more.",
+  "main": "app.js",
+  "author": "SalatWatch",
+  "license": "MIT",
+  "scripts": {
+    "dev": "zeus dev",
+    "build": "zeus build",
+    "preview": "zeus preview"
+  },
+  "devDependencies": {
+    "@zeppos/zeus-cli": "^1.8.1"
+  }
+}
