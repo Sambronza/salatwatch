@@ -21,8 +21,7 @@ Page({
   },
 
   build() {
-    try {
-      console.log('SalatWatch: build() started')
+    console.log('SalatWatch: build() started')
       const gd = getGlobalData()
       if (!gd) {
         console.log('SalatWatch ERROR: globalData is null!')

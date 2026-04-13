@@ -10,7 +10,8 @@
     },
     "icon": "icon.png",
     "description": "Islamic Prayer App",
-    "vender": "SalatWatch"
+    "vender": "SalatWatch",
+    "packageName": "salatwatch"
   },
   "runtime": {
     "apiVersion": {
@@ -38,6 +39,7 @@
   "defaultLanguage": "en-US",
   "targets": {
     "default": {
+      "designWidth": 480,
       "build": {
         "apiLevel": "2.0"
       },
