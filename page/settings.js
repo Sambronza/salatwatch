@@ -2,7 +2,7 @@
  * Settings Page – SalatWatch
  *
  * Allows the user to configure:
- *  - Language (English / Arabic)
+ *  - Language (9 languages, 3-column dynamic grid)
  *  - Calculation method for prayer times
  *  - Asr juristic rule (Shafii / Hanafi)
  *  - Notification toggles (Adhan, Dua, Fasting)
@@ -12,7 +12,7 @@ import { createWidget, widget, align, text_style, event, prop } from '@zos/ui'
 // getApp is a global function, no import needed
 import { back } from '@zos/router'
 
-import { t } from '../utils/i18n'
+import { t, SUPPORTED_LANGUAGES } from '../utils/i18n'
 import { getCalculationMethods } from '../utils/prayerTimes'
 import { sp, SCREEN, COLORS, FONT, PRAYER_COLORS, DECORATIONS, PRAYER_KEYS } from '../utils/constants'
 
@@ -61,43 +61,41 @@ Page({
     })
     yPos += sp(34)
 
-    const halfBtnW = (SCREEN.WIDTH - sp(100)) / 2
+    // ── 3-column grid: 3 languages per row ───────────────────────────
+    const COLS = 3
+    const gridMargin = sp(30)
+    const gridGap = sp(8)
+    const btnW = Math.floor((SCREEN.WIDTH - gridMargin * 2 - gridGap * (COLS - 1)) / COLS)
+    const btnH = sp(38)
 
-    // English button
-    const enBtn = createWidget(widget.FILL_RECT, {
-      x: sp(40), y: yPos, w: halfBtnW, h: sp(42), radius: sp(21),
-      color: lang === 'en' ? COLORS.EMERALD : COLORS.BG_ELEVATED
-    })
-    createWidget(widget.TEXT, {
-      x: sp(40), y: yPos + sp(8), w: halfBtnW, h: sp(28),
-      text: 'English',
-      text_size: FONT.CAPTION_SIZE,
-      color: lang === 'en' ? COLORS.TEXT_PRIMARY : COLORS.TEXT_SECONDARY,
-      align_h: align.CENTER_H
-    })
-    enBtn.addEventListener(event.CLICK_UP, () => {
-      gd.language = 'en'
-      // Refresh page by navigating back and re-entering
-      back()
+    SUPPORTED_LANGUAGES.forEach((langItem, idx) => {
+      const col = idx % COLS
+      const row = Math.floor(idx / COLS)
+      const bx = gridMargin + col * (btnW + gridGap)
+      const by = yPos + row * (btnH + gridGap)
+      const isActive = lang === langItem.code
+
+      const btn = createWidget(widget.FILL_RECT, {
+        x: bx, y: by, w: btnW, h: btnH, radius: sp(10),
+        color: isActive ? COLORS.EMERALD : COLORS.BG_ELEVATED
+      })
+      createWidget(widget.TEXT, {
+        x: bx, y: by + sp(8), w: btnW, h: sp(22),
+        text: langItem.nativeName,
+        text_size: FONT.SMALL_SIZE,
+        color: isActive ? COLORS.TEXT_PRIMARY : COLORS.TEXT_SECONDARY,
+        align_h: align.CENTER_H
+      })
+
+      const code = langItem.code
+      btn.addEventListener(event.CLICK_UP, () => {
+        gd.language = code
+        back()
+      })
     })
 
-    // Arabic button
-    const arBtn = createWidget(widget.FILL_RECT, {
-      x: sp(40) + halfBtnW + sp(20), y: yPos, w: halfBtnW, h: sp(42), radius: sp(21),
-      color: lang === 'ar' ? COLORS.EMERALD : COLORS.BG_ELEVATED
-    })
-    createWidget(widget.TEXT, {
-      x: sp(40) + halfBtnW + sp(20), y: yPos + sp(8), w: halfBtnW, h: sp(28),
-      text: 'العربية',
-      text_size: FONT.CAPTION_SIZE,
-      color: lang === 'ar' ? COLORS.TEXT_PRIMARY : COLORS.TEXT_SECONDARY,
-      align_h: align.CENTER_H
-    })
-    arBtn.addEventListener(event.CLICK_UP, () => {
-      gd.language = 'ar'
-      back()
-    })
-    yPos += sp(60)
+    const totalRows = Math.ceil(SUPPORTED_LANGUAGES.length / COLS)
+    yPos += totalRows * (btnH + gridGap) + sp(8)
 
     // ─── Separator ───────────────────────────────────────────────────
     createWidget(widget.FILL_RECT, {
