@@ -11,6 +11,9 @@
     "preview": "zeus preview"
   },
   "devDependencies": {
-    "@zeppos/zeus-cli": "^1.8.1"
+    "@zeppos/zeus-cli": "^1.7.10"
+  },
+  "dependencies": {
+    "zeppos-app-utils": "^1.0.0"
   }
 }
