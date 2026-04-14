@@ -1,7 +1,7 @@
 {
   "configVersion": "v3",
   "app": {
-    "appId": 1000022,
+    "appId": 1111615,
     "appName": "SalatWatch",
     "appType": "app",
     "version": {
@@ -20,6 +20,7 @@
       "minVersion": "2.0"
     },
     "pages": [
+      "page/purchase",
       "page/index",
       "page/compass",
       "page/tasbih",
@@ -46,6 +47,7 @@
       "module": {
         "page": {
           "pages": [
+            "page/purchase",
             "page/index",
             "page/compass",
             "page/tasbih",

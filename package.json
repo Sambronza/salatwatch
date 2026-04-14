@@ -12,7 +12,8 @@
     "preview": "zeus preview"
   },
   "devDependencies": {
-    "@zeppos/zeus-cli": "^1.8.2"
+    "@zeppos/zeus-cli": "^1.9.0",
+    "ora": "^9.3.0"
   },
   "dependencies": {
     "zeppos-app-utils": "^1.0.0"
