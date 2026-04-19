@@ -1,24 +1,31 @@
+import { MessageBuilder } from '../shared/message-side'
+import { kpayConfig } from '../shared/kpay-config'
+import kpayAppSide from 'kpay-amazfit/app-side'
+
+const messageBuilder = new MessageBuilder()
+const kpay = new kpayAppSide({ ...kpayConfig, messageBuilder })
+
 /**
  * App-Side Service – SalatWatch
- *
- * Runs on the user's phone (companion).
- * Has internet access when phone is connected.
- *
- * Responsibilities:
- *  - Fetch prayer times from AlAdhan API (fallback/verification)
- *  - Fetch daily content (Ayah of the Day, Hadith of the Day)
- *  - Push notifications and data to the watch via Bluetooth messaging
  */
-
 AppSideService({
   onInit() {
     console.log('SalatWatch App-Side Service initialized')
+    kpay.init()
+    messageBuilder.listen(() => {})
 
-    // Listen for requests from the watch
-    this.onMessage = (payload) => {
+    // Listen for requests from the watch via MessageBuilder (Replaces old this.onMessage)
+    messageBuilder.on('request', (ctx) => {
+      const payload = messageBuilder.buf2Json(ctx.request.payload)
+      
+      // Pass the request to kpay first; if it handles it, return early.
+      if (kpay.onRequest(payload)) {
+        return;
+      }
+
+      // Handle our own messages (prayer times, etc.)
       try {
-        const data = JSON.parse(payload)
-
+        const data = payload; // MessageBuilder parsed it
         switch (data.command) {
           case 'FETCH_PRAYER_TIMES':
             this.fetchPrayerTimes(data.latitude, data.longitude, data.method)
@@ -35,7 +42,7 @@ AppSideService({
       } catch (e) {
         console.log('Message parsing error:', e)
       }
-    }
+    })
   },
 
   /**
@@ -126,7 +133,8 @@ AppSideService({
    */
   sendToDevice(data) {
     try {
-      this.send(JSON.stringify(data))
+      // Broadcast or reply using MessageBuilder
+      messageBuilder.call(data)
     } catch (e) {
       console.log('Error sending to device:', e)
     }
@@ -140,5 +148,6 @@ AppSideService({
 
   onDestroy() {
     console.log('App-Side Service destroyed')
+    kpay.destroy()
   }
 })

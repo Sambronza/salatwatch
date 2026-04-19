@@ -61,14 +61,19 @@
         }
       },
       "platforms": [
-        {
-          "name": "254",
-          "deviceSource": 7930112
-        },
-        {
-          "name": "254",
-          "deviceSource": 7930113
-        }
+        { "name": "254", "deviceSource": 7930112 },
+        { "name": "254", "deviceSource": 7930113 },
+        { "name": "254", "deviceSource": 7864577 },
+        { "name": "229", "deviceSource": 229 },
+        { "name": "229", "deviceSource": 230 },
+        { "name": "229", "deviceSource": 6095106 },
+        { "name": "418", "deviceSource": 418 },
+        { "name": "418", "deviceSource": 419 },
+        { "name": "390", "deviceSource": 7995648 },
+        { "name": "390", "deviceSource": 7995649 },
+        { "name": "250", "deviceSource": 250 },
+        { "name": "250", "deviceSource": 251 },
+        { "name": "394", "deviceSource": 394 }
       ]
     }
   }

@@ -1,4 +1,9 @@
-// import { setStatusBarVisible } from '@zos/ui'
+import './shared/device-polyfill'
+import { MessageBuilder } from './shared/message'
+import { getPackageInfo } from '@zos/app'
+import * as ble from '@zos/ble'
+import { kpayConfig } from './shared/kpay-config'
+import kpayApp from 'kpay-amazfit/app'
 
 App({
   globalData: {
@@ -20,20 +25,33 @@ App({
     },
     hijriDate: null,
     qiblaAngle: null,
-    dailyAyah: null
+    dailyAyah: null,
+    messageBuilder: null,
+    kpay: null
   },
 
   onCreate() {
     console.log('SalatWatch App Created')
     try { const { setStatusBarVisible } = require('@zos/ui'); setStatusBarVisible(false) } catch(e) {}
 
+    // Initialize KPay and MessageBuilder
+    const { appId } = getPackageInfo()
+    const messageBuilder = new MessageBuilder({ appId, appDevicePort: 20, appSidePort: 0, ble })
+    this.globalData.messageBuilder = messageBuilder
+    messageBuilder.connect()
+    
+    const kpay = new kpayApp({ ...kpayConfig, dialogPath: 'page/kpay/index.page', messageBuilder });
+    this.globalData.kpay = kpay;
+    kpay.init();
+
+    this.messaging = messageBuilder
+
     // Bridge messaging setup
-    if (this._options && this._options.messaging) {
-      this.messaging = this._options.messaging
-      
-      this.messaging.onCall((payload) => {
-        console.log('Received message from phone:', payload)
+    if (this.messaging) {
+      this.messaging.on('request', (ctx) => {
         try {
+          const payload = this.messaging.buf2Json(ctx.request.payload)
+          console.log('Received message from phone:', payload)
           const data = typeof payload === 'string' ? JSON.parse(payload) : payload
           
           if (data.type === 'PRAYER_TIMES') {
@@ -51,5 +69,6 @@ App({
 
   onDestroy() {
     console.log('SalatWatch App Destroyed')
+    this.globalData.messageBuilder && this.globalData.messageBuilder.disConnect()
   }
 })

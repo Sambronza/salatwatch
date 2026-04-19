@@ -13,9 +13,7 @@
   },
   "devDependencies": {
     "@zeppos/zeus-cli": "^1.9.0",
-    "ora": "^9.3.0"
-  },
-  "dependencies": {
+    "ora": "^9.3.0",
     "zeppos-app-utils": "^1.0.0"
   },
   "overrides": {
@@ -25,5 +23,8 @@
     "got": "^11.8.5",
     "tmp": "^0.2.3",
     "flatted": "^3.4.1"
+  },
+  "dependencies": {
+    "kpay-amazfit": "^2.0.4"
   }
 }

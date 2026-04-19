@@ -1,0 +1,48 @@
+<svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#1a2634;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a0f14;stop-opacity:1" />
+    </radialGradient>
+    <pattern id="islamicPattern" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M40 0L45 35L80 40L45 45L40 80L35 45L0 40L35 35Z" fill="none" stroke="#d4a84b" stroke-width="0.5" opacity="0.1"/>
+    </pattern>
+  </defs>
+
+  <rect width="360" height="360" fill="url(#bgGrad)" />
+  <rect width="360" height="360" fill="url(#islamicPattern)" />
+  
+  <!-- Scalloped Border (Scaled down slightly to avoid clipping) -->
+  <g transform="translate(18, 18) scale(0.9)">
+  <path d="M180 10 C 198 46, 234 46, 252 28 C 270 10, 306 28, 324 46 C 342 64, 360 100, 342 118 C 324 136, 324 172, 360 190 C 324 208, 324 244, 342 262 C 360 280, 342 316, 324 334 C 306 352, 270 370, 252 352 C 234 334, 198 334, 180 370 C 162 334, 126 334, 108 352 C 90 370, 54 352, 36 334 C 18 316, 0 280, 18 262 C 36 244, 36 208, 0 190 C 36 172, 36 136, 18 118 C 0 100, 18 64, 36 46 C 54 28, 90 10, 108 28 C 126 46, 162 46, 180 10" 
+        fill="none" stroke="#d4a84b" stroke-width="1.8" opacity="0.6" />
+  </g>
+
+  <!-- Star Icon -->
+  <path d="M180 20 L 185 40 L 205 40 L 190 52 L 195 72 L 180 60 L 165 72 L 170 52 L 155 40 L 175 40 Z" fill="#d4a84b"/>
+
+  <g font-family="'Microsoft JhengHei', 'Microsoft YaHei', Arial, sans-serif" text-anchor="middle">
+    <text x="180" y="90" font-size="12" fill="#d4a84b" font-weight="bold" letter-spacing="2">14 RAMADAN 1447</text>
+    
+    <text x="180" y="125" font-size="16" fill="#8a9bae">&#x4E0B;&#x6B21;&#x79AE;&#x62DC;:</text>
+    <text x="180" y="155" font-size="28" fill="#f0d078" font-weight="bold">&#x664C;&#x79AE;</text>
+    <text x="180" y="195" font-size="38" fill="#f0f0f0" font-weight="200">12:34</text>
+    
+    <!-- Table Row 1 -->
+    <text x="100" y="240" font-size="16" fill="#f0f0f0" text-anchor="start">&#x6642;&#x79AE;</text>
+    <text x="260" y="240" font-size="16" fill="#8a9bae" text-anchor="end">05:12</text>
+    
+    <!-- Active Row Background -->
+    <rect x="60" y="255" width="240" height="34" fill="#d4a84b" opacity="0.1" rx="8" />
+    
+    <!-- Table Row 2 (Active) -->
+    <text x="100" y="278" font-size="16" fill="#f0d078" text-anchor="start" font-weight="bold">&#x664C;&#x79AE;</text>
+    <text x="260" y="278" font-size="16" fill="#f0d078" text-anchor="end" font-weight="bold">12:34</text>
+    
+    <!-- Table Row 3 -->
+    <text x="100" y="315" font-size="16" fill="#f0f0f0" text-anchor="start">&#x6124;&#x79AE;</text>
+    <text x="260" y="315" font-size="16" fill="#8a9bae" text-anchor="end">15:48</text>
+    
+    <line x1="60" y1="225" x2="300" y2="225" stroke="#d4a84b" stroke-width="0.5" opacity="0.3" />
+  </g>
+</svg>

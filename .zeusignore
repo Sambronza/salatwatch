@@ -1,0 +1,27 @@
+# Development dependencies
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Project management & IDE
+.git/
+.idea/
+.vscode/
+
+# Assets & Documentation
+store_screenshots/
+temp_*.svg
+premium_zh_tw.svg
+premium_grid.svg
+premium_grid.png
+generate_all.js
+generate_all.ps1
+crop_grid.ps1
+crop_preview.ps1
+
+# System
+.DS_Store
+Thumbs.db
