@@ -1,20 +1,21 @@
 /**
- * Settings Page – SalatWatch
+ * Settings Page - SalatWatch
  *
  * Allows the user to configure:
- *  - Language (9 languages, 3-column dynamic grid)
+ *  - Language (11 languages, single-column scroll list)
  *  - Calculation method for prayer times
  *  - Asr juristic rule (Shafii / Hanafi)
  *  - Notification toggles (Adhan, Dua, Fasting)
+ *  - Adhan style selection
  */
 
 import { createWidget, widget, align, text_style, event, prop } from '@zos/ui'
-// getApp is a global function, no import needed
 import { back } from '@zos/router'
+import { localStorage } from '@zos/storage'
 
 import { t, SUPPORTED_LANGUAGES } from '../utils/i18n'
 import { getCalculationMethods } from '../utils/prayerTimes'
-import { sp, SCREEN, COLORS, FONT, PRAYER_COLORS, DECORATIONS, PRAYER_KEYS } from '../utils/constants'
+import { sp, SCREEN, COLORS, FONT, PRAYER_COLORS, DECORATIONS, PRAYER_KEYS, IMG_ASSETS } from '../utils/constants'
 
 function getGlobalData() {
   const app = getApp()
@@ -32,16 +33,16 @@ Page({
     const gd = getGlobalData()
     const lang = gd.language || 'en'
 
-    // ─── Background ──────────────────────────────────────────────────
+    // Background (tall for scrolling)
     createWidget(widget.FILL_RECT, {
-      x: 0, y: 0, w: SCREEN.WIDTH, h: SCREEN.HEIGHT * 3,
+      x: 0, y: 0, w: SCREEN.WIDTH, h: SCREEN.HEIGHT * 6,
       color: COLORS.BG_PRIMARY
     })
 
-    // ─── Title ───────────────────────────────────────────────────────
+    // Title
     createWidget(widget.TEXT, {
       x: 0, y: sp(24), w: SCREEN.WIDTH, h: sp(36),
-      text: `⚙ ${t('settings', lang)}`,
+      text: t('settings', lang),
       text_size: FONT.HEADER_SIZE,
       color: COLORS.GOLD,
       align_h: align.CENTER_H
@@ -49,9 +50,9 @@ Page({
 
     let yPos = sp(76)
 
-    // ═══════════════════════════════════════════════════════════════════
-    // LANGUAGE TOGGLE
-    // ═══════════════════════════════════════════════════════════════════
+    // =========================================================
+    // LANGUAGE (single-column list, smartwatch-friendly)
+    // =========================================================
     createWidget(widget.TEXT, {
       x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(28),
       text: t('language', lang),
@@ -61,28 +62,23 @@ Page({
     })
     yPos += sp(34)
 
-    // ── 3-column grid: 3 languages per row ───────────────────────────
-    const COLS = 3
-    const gridMargin = sp(30)
-    const gridGap = sp(8)
-    const btnW = Math.floor((SCREEN.WIDTH - gridMargin * 2 - gridGap * (COLS - 1)) / COLS)
-    const btnH = sp(38)
+    const langBtnH = sp(48)
+    const langBtnGap = sp(8)
+    const langBtnMargin = sp(30)
+    const langBtnW = SCREEN.WIDTH - langBtnMargin * 2
 
     SUPPORTED_LANGUAGES.forEach((langItem, idx) => {
-      const col = idx % COLS
-      const row = Math.floor(idx / COLS)
-      const bx = gridMargin + col * (btnW + gridGap)
-      const by = yPos + row * (btnH + gridGap)
+      const by = yPos + idx * (langBtnH + langBtnGap)
       const isActive = lang === langItem.code
 
       const btn = createWidget(widget.FILL_RECT, {
-        x: bx, y: by, w: btnW, h: btnH, radius: sp(10),
+        x: langBtnMargin, y: by, w: langBtnW, h: langBtnH, radius: sp(14),
         color: isActive ? COLORS.EMERALD : COLORS.BG_ELEVATED
       })
       createWidget(widget.TEXT, {
-        x: bx, y: by + sp(8), w: btnW, h: sp(22),
+        x: langBtnMargin, y: by + sp(12), w: langBtnW, h: sp(24),
         text: langItem.nativeName,
-        text_size: FONT.SMALL_SIZE,
+        text_size: FONT.BODY_SIZE,
         color: isActive ? COLORS.TEXT_PRIMARY : COLORS.TEXT_SECONDARY,
         align_h: align.CENTER_H
       })
@@ -90,22 +86,22 @@ Page({
       const code = langItem.code
       btn.addEventListener(event.CLICK_UP, () => {
         gd.language = code
+        try { localStorage.setItem('salatwatch_lang', code) } catch(e) {}
         back()
       })
     })
 
-    const totalRows = Math.ceil(SUPPORTED_LANGUAGES.length / COLS)
-    yPos += totalRows * (btnH + gridGap) + sp(8)
+    yPos += SUPPORTED_LANGUAGES.length * (langBtnH + langBtnGap) + sp(8)
 
-    // ─── Separator ───────────────────────────────────────────────────
+    // Separator
     createWidget(widget.FILL_RECT, {
       x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(1), color: COLORS.GOLD_DIM
     })
     yPos += sp(16)
 
-    // ═══════════════════════════════════════════════════════════════════
+    // =========================================================
     // CALCULATION METHOD
-    // ═══════════════════════════════════════════════════════════════════
+    // =========================================================
     createWidget(widget.TEXT, {
       x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(28),
       text: t('calculationMethod', lang),
@@ -121,13 +117,13 @@ Page({
       const isActive = gd.calculationMethod === parseInt(id)
 
       const methodBtn = createWidget(widget.FILL_RECT, {
-        x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(38), radius: sp(10),
+        x: sp(30), y: yPos, w: SCREEN.WIDTH - sp(60), h: sp(44), radius: sp(12),
         color: isActive ? COLORS.EMERALD_DARK : COLORS.BG_CARD
       })
       createWidget(widget.TEXT, {
-        x: sp(50), y: yPos + sp(6), w: SCREEN.WIDTH - sp(100), h: sp(26),
-        text: `${isActive ? DECORATIONS.STAR + ' ' : '  '}${method.name}`,
-        text_size: FONT.CAPTION_SIZE,
+        x: sp(40), y: yPos + sp(10), w: SCREEN.WIDTH - sp(80), h: sp(24),
+        text: method.name,
+        text_size: FONT.BODY_SIZE,
         color: isActive ? COLORS.GOLD_LIGHT : COLORS.TEXT_SECONDARY,
         align_h: align.LEFT
       })
@@ -135,23 +131,23 @@ Page({
       const methodId = parseInt(id)
       methodBtn.addEventListener(event.CLICK_UP, () => {
         gd.calculationMethod = methodId
-        back() // Go back to refresh
+        back()
       })
 
-      yPos += sp(44)
+      yPos += sp(52)
     }
 
     yPos += sp(8)
 
-    // ─── Separator ───────────────────────────────────────────────────
+    // Separator
     createWidget(widget.FILL_RECT, {
       x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(1), color: COLORS.GOLD_DIM
     })
     yPos += sp(16)
 
-    // ═══════════════════════════════════════════════════════════════════
+    // =========================================================
     // NOTIFICATION TOGGLES
-    // ═══════════════════════════════════════════════════════════════════
+    // =========================================================
     createWidget(widget.TEXT, {
       x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(28),
       text: t('notifications', lang),
@@ -171,20 +167,20 @@ Page({
       const isOn = gd.alarmSettings[item.setting]
 
       createWidget(widget.TEXT, {
-        x: sp(50), y: yPos + sp(4), w: SCREEN.WIDTH - sp(180), h: sp(26),
+        x: sp(40), y: yPos + sp(8), w: SCREEN.WIDTH - sp(160), h: sp(28),
         text: item.label,
-        text_size: FONT.CAPTION_SIZE,
+        text_size: FONT.BODY_SIZE,
         color: COLORS.TEXT_PRIMARY,
         align_h: align.LEFT
       })
 
       const toggleBtn = createWidget(widget.FILL_RECT, {
-        x: SCREEN.WIDTH - sp(120), y: yPos, w: sp(80), h: sp(34), radius: sp(17),
+        x: SCREEN.WIDTH - sp(110), y: yPos + sp(4), w: sp(72), h: sp(36), radius: sp(18),
         color: isOn ? COLORS.EMERALD : COLORS.INACTIVE
       })
       const toggleLabel = createWidget(widget.TEXT, {
-        x: SCREEN.WIDTH - sp(120), y: yPos + sp(5), w: sp(80), h: sp(24),
-        text: isOn ? '✓' : '✗',
+        x: SCREEN.WIDTH - sp(110), y: yPos + sp(10), w: sp(72), h: sp(24),
+        text: isOn ? '\u2713' : '\u2717',
         text_size: FONT.CAPTION_SIZE,
         color: COLORS.TEXT_PRIMARY,
         align_h: align.CENTER_H
@@ -195,22 +191,22 @@ Page({
         gd.alarmSettings[settingKey] = !gd.alarmSettings[settingKey]
         const newState = gd.alarmSettings[settingKey]
         toggleBtn.setProperty(prop.COLOR, newState ? COLORS.EMERALD : COLORS.INACTIVE)
-        toggleLabel.setProperty(prop.TEXT, newState ? '✓' : '✗')
+        toggleLabel.setProperty(prop.TEXT, newState ? '\u2713' : '\u2717')
       })
 
-      yPos += sp(44)
+      yPos += sp(48)
     }
 
     yPos += sp(16)
-    // ─── Separator ───────────────────────────────────────────────────
+    // Separator
     createWidget(widget.FILL_RECT, {
       x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(1), color: COLORS.GOLD_DIM
     })
     yPos += sp(16)
 
-    // ═══════════════════════════════════════════════════════════════════
+    // =========================================================
     // ADHAN STYLE SELECTION
-    // ═══════════════════════════════════════════════════════════════════
+    // =========================================================
     createWidget(widget.TEXT, {
       x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(28),
       text: t('adhanStyle', lang),
@@ -230,13 +226,13 @@ Page({
       const isActive = gd.selectedAdhan === style.id
 
       const styleBtn = createWidget(widget.FILL_RECT, {
-        x: sp(40), y: yPos, w: SCREEN.WIDTH - sp(80), h: sp(38), radius: sp(10),
+        x: sp(30), y: yPos, w: SCREEN.WIDTH - sp(60), h: sp(44), radius: sp(12),
         color: isActive ? COLORS.EMERALD_DARK : COLORS.BG_CARD
       })
       createWidget(widget.TEXT, {
-        x: sp(50), y: yPos + sp(6), w: SCREEN.WIDTH - sp(100), h: sp(26),
-        text: `${isActive ? DECORATIONS.CRESCENT + ' ' : '  '}${style.label}`,
-        text_size: FONT.CAPTION_SIZE,
+        x: sp(40), y: yPos + sp(10), w: SCREEN.WIDTH - sp(80), h: sp(24),
+        text: style.label,
+        text_size: FONT.BODY_SIZE,
         color: isActive ? COLORS.GOLD_LIGHT : COLORS.TEXT_SECONDARY,
         align_h: align.LEFT
       })
@@ -247,16 +243,14 @@ Page({
         back()
       })
 
-      yPos += sp(44)
+      yPos += sp(52)
     }
 
-    yPos += sp(8)
-
-    // ─── Footer ──────────────────────────────────────────────────────
+    // Footer
     yPos += sp(20)
     createWidget(widget.TEXT, {
       x: 0, y: yPos, w: SCREEN.WIDTH, h: sp(26),
-      text: `${DECORATIONS.ORNAMENT_L} SalatWatch v1.0 ${DECORATIONS.ORNAMENT_R}`,
+      text: 'SalatWatch v1.0',
       text_size: FONT.SMALL_SIZE,
       color: COLORS.GOLD_DIM,
       align_h: align.CENTER_H

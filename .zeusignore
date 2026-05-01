@@ -25,3 +25,6 @@ crop_preview.ps1
 # System
 .DS_Store
 Thumbs.db
+
+**/node_modules/**
+node_modules

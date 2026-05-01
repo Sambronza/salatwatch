@@ -94,11 +94,18 @@ export const PRAYER_COLORS = {
 }
 
 // ─── Islamic Art Decorative Assets (PNG) ─────────────────────────────
-export const DECORATIONS = {
-  BISMILLAH: 'star.png', // Replacement for complex unicode
+// Image asset paths — use ONLY with widget.IMG, never in text: properties
+export const IMG_ASSETS = {
   STAR:      'star.png',
-  CRESCENT:  'crescent.png',
-  ORNAMENT_L: '', // Remove text ornaments
+  CRESCENT:  'crescent.png'
+}
+
+// Text-safe decoration strings (empty to avoid rendering filenames as text)
+export const DECORATIONS = {
+  BISMILLAH: '',
+  STAR:      '',
+  CRESCENT:  '',
+  ORNAMENT_L: '',
   ORNAMENT_R: '',
-  SEPARATOR: 'star.png'
+  SEPARATOR: ''
 }

@@ -9,7 +9,7 @@ import { back } from '@zos/router'
 // getApp is a global function, no import needed
 
 import { t } from '../utils/i18n'
-import { sp, SCREEN, COLORS, FONT, PRAYER_COLORS, DECORATIONS, PRAYER_KEYS } from '../utils/constants'
+import { sp, SCREEN, COLORS, FONT, PRAYER_COLORS, DECORATIONS, PRAYER_KEYS, IMG_ASSETS } from '../utils/constants'
 
 function getGlobalData() {
   const app = getApp()
@@ -44,7 +44,7 @@ Page({
     })
     createWidget(widget.IMG, {
       x: (SCREEN.WIDTH - sp(48)) / 2, y: sp(10),
-      src: DECORATIONS.CRESCENT
+      src: IMG_ASSETS.CRESCENT
     })
 
     // ─── Card: Missed Fasts ──────────────────────────────────────────

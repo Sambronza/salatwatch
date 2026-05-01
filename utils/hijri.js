@@ -24,38 +24,43 @@ const HIJRI_MONTHS_AR = [
  * @returns {{ year: number, month: number, day: number, monthName: string, monthNameAr: string }}
  */
 export function gregorianToHijri(date) {
-  const day = date.getDate()
-  const month = date.getMonth() // 0-indexed
-  const year = date.getFullYear()
-
-  let jd = intPart((1461 * (year + 4800 + intPart((month + 1 - 14) / 12))) / 4) +
-    intPart((367 * (month + 1 - 2 - 12 * intPart((month + 1 - 14) / 12))) / 12) -
-    intPart((3 * intPart((year + 4900 + intPart((month + 1 - 14) / 12)) / 100)) / 4) +
-    day - 32075
-
-  jd = jd - 1948440 + 10632
-  const n = intPart((jd - 1) / 10631)
-  jd = jd - 10631 * n + 354
-  const j = intPart((10985 - jd) / 5316) * intPart((50 * jd) / 17719) +
-    intPart(jd / 5670) * intPart((43 * jd) / 15238)
-  jd = jd - intPart((30 - j) / 15) * intPart((17719 * j) / 50) -
-    intPart(j / 16) * intPart((15238 * j) / 43) + 29
-
-  const hijriMonth = intPart((24 * jd) / 709)
-  const hijriDay = jd - intPart((709 * hijriMonth) / 24)
-  const hijriYear = 30 * n + j - 30
+  var day = date.getDate();
+  var month = date.getMonth();
+  var year = date.getFullYear();
+  var m = month+1;
+  var y = year;
+  if(m<3) {
+      y -= 1;
+      m += 12;
+  }
+  var a = Math.floor(y/100.);
+  var b = 2-a+Math.floor(a/4.);
+  if(y<1583) b = 0;
+  if(y==1582) {
+    if(m>10)  b = -10;
+    if(m==10 && day>4) b = -10;
+  }
+  var jd = Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+day+b-1524;
+  var iyear = 10631./30.;
+  var epochcivil = 1948085;
+  var shift1 = 8.01/60.;
+  var z = jd-epochcivil;
+  var cyc = Math.floor(z/10631.);
+  z = z-10631*cyc;
+  var j = Math.floor((z-shift1)/iyear);
+  var iy = 30*cyc+j;
+  z = z-Math.floor(j*iyear+shift1);
+  var im = Math.floor((z+28.5001)/29.5);
+  if(im==13) im = 12;
+  var id = z-Math.floor(29.5001*im-29);
 
   return {
-    year: hijriYear,
-    month: hijriMonth,
-    day: hijriDay,
-    monthName: HIJRI_MONTHS_EN[hijriMonth - 1] || '',
-    monthNameAr: HIJRI_MONTHS_AR[hijriMonth - 1] || ''
+    year: iy,
+    month: im,
+    day: id,
+    monthName: HIJRI_MONTHS_EN[im - 1] || '',
+    monthNameAr: HIJRI_MONTHS_AR[im - 1] || ''
   }
-}
-
-function intPart(x) {
-  return x < 0 ? Math.ceil(x - 0.5) : Math.floor(x + 0.5)
 }
 
 /**

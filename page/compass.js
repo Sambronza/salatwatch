@@ -7,6 +7,8 @@
 
 import { createWidget, widget, align, text_style, event, prop } from '@zos/ui'
 import { back } from '@zos/router'
+import { t } from '../utils/i18n'
+import { sp, SCREEN, COLORS, FONT, DECORATIONS, IMG_ASSETS } from '../utils/constants'
 
 function getGlobalData() {
   const app = getApp()
@@ -35,7 +37,7 @@ Page({
     // ─── Title ───────────────────────────────────────────────────────
     createWidget(widget.TEXT, {
       x: 0, y: sp(30), w: SCREEN.WIDTH, h: sp(36),
-      text: `${DECORATIONS.CRESCENT} ${t('qiblaCompass', lang)}`,
+      text: t('qiblaCompass', lang),
       text_size: FONT.HEADER_SIZE,
       color: COLORS.GOLD,
       align_h: align.CENTER_H
@@ -90,7 +92,7 @@ Page({
     const qiblaAngleText = createWidget(widget.IMG, {
       x: (SCREEN.WIDTH - sp(64)) / 2,
       y: SCREEN.CENTER_Y - sp(30),
-      src: DECORATIONS.CRESCENT
+      src: IMG_ASSETS.CRESCENT
     })
 
     // ─── Degree display ──────────────────────────────────────────────

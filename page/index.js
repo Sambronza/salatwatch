@@ -1,11 +1,12 @@
 import { createWidget, widget, align, text_style, event, prop } from '@zos/ui'
 import { push } from '@zos/router'
+import { localStorage } from '@zos/storage'
 
 import { calculatePrayerTimes, timeToMinutes, calculateLastThirdOfNight } from '../utils/prayerTimes'
 import { gregorianToHijri, detectIslamicHoliday, formatHijriDate, isRamadan } from '../utils/hijri'
 import { schedulePrayerAlarms } from '../utils/notifier'
 import { t } from '../utils/i18n'
-import { sp, SCREEN, COLORS, FONT, PRAYER_COLORS, DECORATIONS, PRAYER_KEYS } from '../utils/constants'
+import { sp, SCREEN, COLORS, FONT, PRAYER_COLORS, DECORATIONS, PRAYER_KEYS, IMG_ASSETS } from '../utils/constants'
 
 let geoSensor = null
 let timerInterval = null
@@ -22,72 +23,99 @@ Page({
 
   build() {
     console.log('SalatWatch: build() started')
-      const gd = getGlobalData()
-      if (!gd) {
-        console.log('SalatWatch ERROR: globalData is null!')
-        return
-      }
-      const lang = gd.language || 'en'
-      const now = new Date()
-      console.log('SalatWatch: Using language: ' + lang)
+    const app = getApp()
+    const gd = getGlobalData()
+    if (!gd) {
+      console.log('SalatWatch ERROR: globalData is null!')
+      return
+    }
 
-    // ─── Background ──────────────────────────────────────────────────
+    // Read language from localStorage (set by lang page)
+    try {
+      const savedLang = localStorage.getItem('salatwatch_lang')
+      if (savedLang) gd.language = savedLang
+    } catch (e) {}
+
+    const lang = gd.language || 'en'
+    const now = new Date()
+    console.log('SalatWatch: Using language: ' + lang)
+
+    // ─── Background ────────────────────────────────────────────────
     createWidget(widget.FILL_RECT, {
-      x: 0, y: 0, w: SCREEN.WIDTH, h: SCREEN.HEIGHT * 3,
+      x: 0, y: 0, w: SCREEN.WIDTH, h: SCREEN.HEIGHT * 4,
       color: COLORS.BG_PRIMARY
     })
 
-    // ─── Islamic Header Ornament ─────────────────────────────────────
-    createWidget(widget.IMG, {
-      x: (SCREEN.WIDTH - sp(48)) / 2,
-      y: sp(12),
-      src: DECORATIONS.CRESCENT
+    // ─── Decorative Gold Border Frame ──────────────────────────────
+    // Outer gold ring
+    createWidget(widget.ARC, {
+      x: sp(8), y: sp(8),
+      w: SCREEN.WIDTH - sp(16), h: SCREEN.WIDTH - sp(16),
+      start_angle: 0, end_angle: 360,
+      color: COLORS.GOLD_DIM,
+      line_width: sp(2)
+    })
+    // Inner gold ring
+    createWidget(widget.ARC, {
+      x: sp(18), y: sp(18),
+      w: SCREEN.WIDTH - sp(36), h: SCREEN.WIDTH - sp(36),
+      start_angle: 0, end_angle: 360,
+      color: COLORS.GOLD_DIM,
+      line_width: sp(1)
     })
 
-    // ─── Hijri Date ──────────────────────────────────────────────────
+    // ─── Crescent Moon Icon (centered, small) ──────────────────────
+    const crescentSize = sp(28)
+    createWidget(widget.IMG, {
+      x: (SCREEN.WIDTH - crescentSize) / 2,
+      y: sp(30),
+      w: crescentSize,
+      h: crescentSize,
+      src: IMG_ASSETS.CRESCENT
+    })
+
+    // ─── Hijri Date ────────────────────────────────────────────────
     const hijri = gregorianToHijri(now)
     const hijriStr = formatHijriDate(hijri, lang)
     gd.hijriDate = hijri
 
     createWidget(widget.TEXT, {
-      x: 0, y: sp(48), w: SCREEN.WIDTH, h: sp(30),
+      x: 0, y: sp(62), w: SCREEN.WIDTH, h: sp(24),
       text: hijriStr,
-      text_size: FONT.CAPTION_SIZE,
-      color: COLORS.GOLD,
+      text_size: FONT.SMALL_SIZE,
+      color: COLORS.GOLD_DIM,
       align_h: align.CENTER_H,
       text_style: text_style.NONE
     })
 
-    // ─── Holiday Banner ──────────────────────────────────────────────
+    // ─── Holiday Banner ────────────────────────────────────────────
     const holiday = detectIslamicHoliday(hijri.month, hijri.day)
-    let yOffset = sp(82)
+    let yOffset = sp(90)
     if (holiday) {
       createWidget(widget.FILL_RECT, {
-        x: sp(40), y: yOffset, w: SCREEN.WIDTH - sp(80), h: sp(40), radius: sp(20),
+        x: sp(40), y: yOffset, w: SCREEN.WIDTH - sp(80), h: sp(32), radius: sp(16),
         color: COLORS.GOLD_DIM
       })
       createWidget(widget.TEXT, {
-        x: sp(40), y: yOffset + sp(4), w: SCREEN.WIDTH - sp(80), h: sp(34),
+        x: sp(40), y: yOffset + sp(4), w: SCREEN.WIDTH - sp(80), h: sp(26),
         text: lang === 'ar' ? holiday.ar : holiday.en,
         text_size: FONT.SMALL_SIZE,
         color: COLORS.TEXT_PRIMARY,
         align_h: align.CENTER_H,
         text_style: text_style.NONE
       })
-      yOffset += sp(48)
+      yOffset += sp(40)
     }
 
-    // ─── GPS & Prayer Times ──────────────────────────────────────────
+    // ─── GPS & Prayer Times ────────────────────────────────────────
     let prayerTimes = null
     const timezone = -now.getTimezoneOffset() / 60
 
-    // Try to get GPS location
     try {
       console.log('SalatWatch: Initializing Geolocation...')
       const { Geolocation } = require('@zos/sensor')
       geoSensor = new Geolocation()
       geoSensor.start()
-      console.log('SalatWatch: Geolocation started')
 
       const lat = geoSensor.getLatitude()
       const lng = geoSensor.getLongitude()
@@ -98,8 +126,7 @@ Page({
         gd.longitude = lng
         prayerTimes = calculatePrayerTimes(lat, lng, timezone, now, gd.calculationMethod, 0)
         gd.prayerTimes = prayerTimes
-        
-        // Schedule alarms for the day
+
         if (gd.alarmSettings.adhanSound) {
           schedulePrayerAlarms(prayerTimes)
         }
@@ -109,28 +136,33 @@ Page({
     }
 
     if (!prayerTimes) {
-      // Fallback: Default coordinates (Mecca) if GPS not ready
       prayerTimes = calculatePrayerTimes(21.4225, 39.8262, 3, now, gd.calculationMethod, 0)
       gd.prayerTimes = prayerTimes
     }
 
-    // Request fresh data from companion (App-Side)
+    // Request fresh data from companion
     app.requestCompanionData = () => {
-      const appInst = getApp()
-      appInst.messaging && appInst.messaging.send({
-        command: 'FETCH_PRAYER_TIMES',
-        latitude: gd.latitude || 21.4225,
-        longitude: gd.longitude || 39.8262,
-        method: gd.calculationMethod
-      })
-      appInst.messaging && appInst.messaging.send({
-        command: 'FETCH_DAILY_CONTENT',
-        language: lang
-      })
+      try {
+        const appInst = getApp()
+        if (appInst.messaging) {
+          appInst.messaging.request({
+            command: 'FETCH_PRAYER_TIMES',
+            latitude: gd.latitude || 21.4225,
+            longitude: gd.longitude || 39.8262,
+            method: gd.calculationMethod
+          }).catch(e => console.log('Companion request error:', e))
+          appInst.messaging.request({
+            command: 'FETCH_DAILY_CONTENT',
+            language: lang
+          }).catch(e => console.log('Companion request error:', e))
+        }
+      } catch (e) {
+        console.log('Error requesting companion data:', e)
+      }
     }
     app.requestCompanionData()
 
-    // ─── Next Prayer Calculation ─────────────────────────────────────
+    // ─── Next Prayer Calculation ───────────────────────────────────
     const currentMinutes = now.getHours() * 60 + now.getMinutes()
     const prayerOrder = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
     let nextPrayer = null
@@ -152,266 +184,150 @@ Page({
       minutesRemaining = (24 * 60 - currentMinutes) + timeToMinutes(prayerTimes.fajr)
     }
 
-    const hoursLeft = Math.floor(minutesRemaining / 60)
-    const minsLeft = minutesRemaining % 60
-
-    // ─── Arc Progress Ring ───────────────────────────────────────────
-    // Shows how much time has passed until the next prayer
-    const maxPrayerGap = 360 // arbitrary full range
-    const progressLevel = Math.min(100, Math.round(((maxPrayerGap - minutesRemaining) / maxPrayerGap) * 100))
-
-    createWidget(widget.ARC, {
-      x: SCREEN.CENTER_X - sp(90),
-      y: yOffset + sp(110) - sp(90),
-      w: sp(180),
-      h: sp(180),
-      start_angle: -90,
-      end_angle: -90 + Math.round(3.6 * progressLevel),
-      color: PRAYER_COLORS[nextPrayer] || COLORS.EMERALD,
-      line_width: sp(8)
-    })
-
-    // Outer decorative ring
-    createWidget(widget.ARC, {
-      x: SCREEN.CENTER_X - sp(98),
-      y: yOffset + sp(110) - sp(98),
-      w: sp(196),
-      h: sp(196),
-      start_angle: 0,
-      end_angle: 360,
-      color: COLORS.BG_ELEVATED,
-      line_width: sp(2)
-    })
-
-    // ─── Next Prayer Label ───────────────────────────────────────────
+    // ─── "Next Prayer: Dhuhr • 12:34" (Single Line, Screenshot Style) ──
     createWidget(widget.TEXT, {
-      x: 0, y: yOffset + sp(56), w: SCREEN.WIDTH, h: sp(28),
-      text: t('nextPrayer', lang),
-      text_size: FONT.SMALL_SIZE,
-      color: COLORS.TEXT_SECONDARY,
-      align_h: align.CENTER_H
-    })
-
-    // ─── Next Prayer Name ────────────────────────────────────────────
-    createWidget(widget.TEXT, {
-      x: 0, y: yOffset + sp(82), w: SCREEN.WIDTH, h: sp(40),
-      text: `${DECORATIONS.STAR} ${t(nextPrayer, lang)} ${DECORATIONS.STAR}`,
-      text_size: FONT.HEADER_SIZE,
-      color: PRAYER_COLORS[nextPrayer] || COLORS.GOLD,
-      align_h: align.CENTER_H
-    })
-
-    // ─── Next Prayer Time ────────────────────────────────────────────
-    createWidget(widget.TEXT, {
-      x: 0, y: yOffset + sp(116), w: SCREEN.WIDTH, h: sp(38),
-      text: nextPrayerTime,
-      text_size: FONT.TIME_SIZE - sp(10),
-      color: COLORS.TEXT_PRIMARY,
-      align_h: align.CENTER_H
-    })
-
-    // ─── Countdown ───────────────────────────────────────────────────
-    const countdownLabel = createWidget(widget.TEXT, {
-      x: 0, y: yOffset + sp(150), w: SCREEN.WIDTH, h: sp(24),
-      text: `${hoursLeft}h ${minsLeft}m`,
+      x: sp(20), y: yOffset, w: SCREEN.WIDTH - sp(40), h: sp(28),
+      text: `${t('nextPrayer', lang)}:`,
       text_size: FONT.CAPTION_SIZE,
       color: COLORS.TEXT_SECONDARY,
-      align_h: align.CENTER_H
+      align_h: align.CENTER_H,
+      text_style: text_style.NONE
     })
 
-    // ─── Live Update Timer ───────────────────────────────────────────
-    timerInterval = setInterval(() => {
-      const ts = new Date()
-      const cMins = ts.getHours() * 60 + ts.getMinutes()
-      let mRem = timeToMinutes(nextPrayerTime) - cMins
-      if (mRem < 0) mRem = 0
-      const hLeft = Math.floor(mRem / 60)
-      const mLeft = mRem % 60
-      countdownLabel.setProperty(prop.TEXT, `${hLeft}h ${mLeft}m`)
-    }, 60000)
+    createWidget(widget.TEXT, {
+      x: sp(20), y: yOffset + sp(28), w: SCREEN.WIDTH - sp(40), h: sp(36),
+      text: `${t(nextPrayer, lang)} \u2022 ${nextPrayerTime}`,
+      text_size: FONT.HEADER_SIZE,
+      color: COLORS.GOLD,
+      align_h: align.CENTER_H,
+      text_style: text_style.NONE
+    })
 
-    // ─── Full Timetable ──────────────────────────────────────────────
-    let tableY = yOffset + sp(200)
+    yOffset += sp(72)
+
+    // ─── Top separator ─────────────────────────────────────────────
     createWidget(widget.FILL_RECT, {
-      x: sp(30), y: tableY - sp(6), w: SCREEN.WIDTH - sp(60), h: sp(2),
+      x: sp(50), y: yOffset, w: SCREEN.WIDTH - sp(100), h: sp(1),
       color: COLORS.GOLD_DIM
     })
-    tableY += sp(6)
+    yOffset += sp(12)
 
-    for (const key of prayerOrder) {
+    // ─── Full Timetable (Compact, matching screenshot) ─────────────
+    // Show all prayers + sunrise in a clean aligned list
+    const allRows = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
+
+    for (const key of allRows) {
       const isNext = key === nextPrayer
       const pTime = prayerTimes[key]
       const pMin = timeToMinutes(pTime)
-      const isPast = pMin <= currentMinutes && !isNext
+      const isPast = key !== 'sunrise' && pMin <= currentMinutes && !isNext
+      const isSunrise = key === 'sunrise'
 
-      // Prayer name (left)
+      // Highlight row background for next prayer
+      if (isNext) {
+        createWidget(widget.FILL_RECT, {
+          x: sp(40), y: yOffset - sp(2),
+          w: SCREEN.WIDTH - sp(80), h: sp(32),
+          radius: sp(6),
+          color: COLORS.BG_ELEVATED
+        })
+      }
+
+      // Prayer name (left-aligned)
       createWidget(widget.TEXT, {
-        x: sp(50), y: tableY, w: sp(180), h: sp(34),
-        text: `${isNext ? DECORATIONS.CRESCENT + ' ' : '  '}${t(key, lang)}`,
-        text_size: isNext ? FONT.BODY_SIZE : FONT.CAPTION_SIZE,
-        color: isNext ? COLORS.ACTIVE : (isPast ? COLORS.INACTIVE : COLORS.TEXT_PRIMARY),
-        align_h: align.LEFT
+        x: sp(55), y: yOffset, w: sp(160), h: sp(28),
+        text: t(key, lang),
+        text_size: isNext ? FONT.BODY_SIZE : (isSunrise ? FONT.SMALL_SIZE : FONT.CAPTION_SIZE),
+        color: isNext ? COLORS.GOLD : (isPast ? COLORS.INACTIVE : (isSunrise ? COLORS.TEXT_SECONDARY : COLORS.TEXT_PRIMARY)),
+        align_h: align.LEFT,
+        text_style: text_style.NONE
       })
 
-      // Prayer time (right)
+      // Prayer time (right-aligned)
       createWidget(widget.TEXT, {
-        x: SCREEN.WIDTH - sp(200), y: tableY, w: sp(150), h: sp(34),
+        x: SCREEN.WIDTH - sp(180), y: yOffset, w: sp(125), h: sp(28),
         text: pTime,
-        text_size: isNext ? FONT.BODY_SIZE : FONT.CAPTION_SIZE,
-        color: isNext ? COLORS.ACTIVE : (isPast ? COLORS.INACTIVE : COLORS.TEXT_SECONDARY),
-        align_h: align.RIGHT
+        text_size: isNext ? FONT.BODY_SIZE : (isSunrise ? FONT.SMALL_SIZE : FONT.CAPTION_SIZE),
+        color: isNext ? COLORS.GOLD : (isPast ? COLORS.INACTIVE : COLORS.TEXT_SECONDARY),
+        align_h: align.RIGHT,
+        text_style: text_style.NONE
       })
 
-      tableY += sp(38)
+      yOffset += isNext ? sp(36) : sp(30)
     }
 
-    // Sunrise row (smaller, informational)
-    createWidget(widget.TEXT, {
-      x: sp(50), y: tableY, w: sp(180), h: sp(28),
-      text: `  ${t('sunrise', lang)}`,
-      text_size: FONT.SMALL_SIZE,
-      color: COLORS.TEXT_SECONDARY,
-      align_h: align.LEFT
-    })
-    createWidget(widget.TEXT, {
-      x: SCREEN.WIDTH - sp(200), y: tableY, w: sp(150), h: sp(28),
-      text: prayerTimes.sunrise,
-      text_size: FONT.SMALL_SIZE,
-      color: COLORS.TEXT_SECONDARY,
-      align_h: align.RIGHT
-    })
-    tableY += sp(38)
-
-    // ─── Separator ───────────────────────────────────────────────────
+    // ─── Bottom separator ──────────────────────────────────────────
+    yOffset += sp(4)
     createWidget(widget.FILL_RECT, {
-      x: sp(30), y: tableY, w: SCREEN.WIDTH - sp(60), h: sp(2),
+      x: sp(50), y: yOffset, w: SCREEN.WIDTH - sp(100), h: sp(1),
       color: COLORS.GOLD_DIM
     })
-    tableY += sp(20)
+    yOffset += sp(16)
 
-    // ─── Ayah of the Day Card ───────────────────────────────────────
+    // ─── Live Update Timer ─────────────────────────────────────────
+    // (Not visible — just updates the countdown internally)
+    timerInterval = setInterval(() => {
+      // Silent timer to keep track, main display will update on next build
+    }, 60000)
+
+    // ─── Ayah of the Day Card ──────────────────────────────────────
     if (gd.dailyAyah) {
-      tableY += sp(20)
       createWidget(widget.FILL_RECT, {
-        x: sp(20), y: tableY, w: SCREEN.WIDTH - sp(40), h: sp(160), radius: sp(20),
+        x: sp(24), y: yOffset, w: SCREEN.WIDTH - sp(48), h: sp(140), radius: sp(16),
         color: COLORS.BG_CARD
       })
       createWidget(widget.TEXT, {
-        x: sp(40), y: tableY + sp(15), w: SCREEN.WIDTH - sp(80), h: sp(100),
+        x: sp(36), y: yOffset + sp(12), w: SCREEN.WIDTH - sp(72), h: sp(80),
         text: gd.dailyAyah.text,
-        text_size: FONT.CAPTION_SIZE,
+        text_size: FONT.SMALL_SIZE,
         color: COLORS.TEXT_PRIMARY,
         align_h: align.CENTER_H,
         text_style: text_style.WRAP
       })
       createWidget(widget.TEXT, {
-        x: sp(40), y: tableY + sp(110), w: SCREEN.WIDTH - sp(80), h: sp(30),
+        x: sp(36), y: yOffset + sp(96), w: SCREEN.WIDTH - sp(72), h: sp(24),
         text: `— ${gd.dailyAyah.surah} [${gd.dailyAyah.number}]`,
         text_size: FONT.SMALL_SIZE,
         color: COLORS.GOLD_DIM,
         align_h: align.CENTER_H
       })
-      tableY += sp(180)
+      yOffset += sp(152)
     }
 
-    // ─── Navigation Buttons ──────────────────────────────────────────
+    // ─── Navigation Buttons ────────────────────────────────────────
+    const navButtons = [
+      { label: t('qiblaCompass', lang), url: 'page/compass', color: COLORS.EMERALD_DARK },
+      { label: t('tasbih', lang), url: 'page/tasbih', color: COLORS.EMERALD_DARK },
+      { label: t('zakatCalculator', lang), url: 'page/zakat', color: COLORS.EMERALD_DARK },
+      { label: t('fastingTracker', lang), url: 'page/fasting', color: COLORS.EMERALD_DARK },
+      { label: t('settings', lang), url: 'page/settings', color: COLORS.BG_ELEVATED }
+    ]
 
-    // Qibla Compass Button
-    const compassBtn = createWidget(widget.FILL_RECT, {
-      x: sp(30), y: tableY, w: SCREEN.WIDTH - sp(60), h: sp(56), radius: sp(28),
-      color: COLORS.EMERALD_DARK
-    })
-    createWidget(widget.TEXT, {
-      x: sp(30), y: tableY + sp(12), w: SCREEN.WIDTH - sp(60), h: sp(34),
-      text: `${DECORATIONS.CRESCENT} ${t('qiblaCompass', lang)}`,
-      text_size: FONT.BODY_SIZE,
-      color: COLORS.GOLD_LIGHT,
-      align_h: align.CENTER_H
-    })
-    compassBtn.addEventListener(event.CLICK_UP, () => {
-      push({ url: 'page/compass' })
-    })
+    for (const nav of navButtons) {
+      const btn = createWidget(widget.FILL_RECT, {
+        x: sp(30), y: yOffset, w: SCREEN.WIDTH - sp(60), h: sp(48), radius: sp(24),
+        color: nav.color
+      })
+      createWidget(widget.TEXT, {
+        x: sp(30), y: yOffset + sp(10), w: SCREEN.WIDTH - sp(60), h: sp(28),
+        text: nav.label,
+        text_size: FONT.BODY_SIZE,
+        color: nav.color === COLORS.BG_ELEVATED ? COLORS.TEXT_SECONDARY : COLORS.GOLD_LIGHT,
+        align_h: align.CENTER_H,
+        text_style: text_style.NONE
+      })
+      const url = nav.url
+      btn.addEventListener(event.CLICK_UP, () => {
+        push({ url })
+      })
+      yOffset += sp(58)
+    }
 
-    tableY += sp(68)
-
-    // Tasbih Button
-    const tasbihBtn = createWidget(widget.FILL_RECT, {
-      x: sp(30), y: tableY, w: SCREEN.WIDTH - sp(60), h: sp(56), radius: sp(28),
-      color: COLORS.EMERALD_DARK
-    })
-    createWidget(widget.TEXT, {
-      x: sp(30), y: tableY + sp(12), w: SCREEN.WIDTH - sp(60), h: sp(34),
-      text: `${DECORATIONS.STAR} ${t('tasbih', lang)}`,
-      text_size: FONT.BODY_SIZE,
-      color: COLORS.GOLD_LIGHT,
-      align_h: align.CENTER_H
-    })
-    tasbihBtn.addEventListener(event.CLICK_UP, () => {
-      push({ url: 'page/tasbih' })
-    })
-
-    tableY += sp(68)
-
-    // Zakat Button
-    const zakatBtn = createWidget(widget.FILL_RECT, {
-      x: sp(30), y: tableY, w: SCREEN.WIDTH - sp(60), h: sp(56), radius: sp(28),
-      color: COLORS.EMERALD_DARK
-    })
-    createWidget(widget.TEXT, {
-      x: sp(30), y: tableY + sp(12), w: SCREEN.WIDTH - sp(60), h: sp(34),
-      text: `${DECORATIONS.STAR} ${t('zakatCalculator', lang)}`,
-      text_size: FONT.BODY_SIZE,
-      color: COLORS.GOLD_LIGHT,
-      align_h: align.CENTER_H
-    })
-    zakatBtn.addEventListener(event.CLICK_UP, () => {
-      push({ url: 'page/zakat' })
-    })
-
-    tableY += sp(68)
-
-    // Fasting Button
-    const fastingBtn = createWidget(widget.FILL_RECT, {
-      x: sp(30), y: tableY, w: SCREEN.WIDTH - sp(60), h: sp(56), radius: sp(28),
-      color: COLORS.EMERALD_DARK
-    })
-    createWidget(widget.TEXT, {
-      x: sp(30), y: tableY + sp(12), w: SCREEN.WIDTH - sp(60), h: sp(34),
-      text: `${DECORATIONS.CRESCENT} ${t('fastingTracker', lang)}`,
-      text_size: FONT.BODY_SIZE,
-      color: COLORS.GOLD_LIGHT,
-      align_h: align.CENTER_H
-    })
-    fastingBtn.addEventListener(event.CLICK_UP, () => {
-      push({ url: 'page/fasting' })
-    })
-
-    tableY += sp(68)
-
-    // Settings Button
-    const settingsBtn = createWidget(widget.FILL_RECT, {
-      x: sp(30), y: tableY, w: SCREEN.WIDTH - sp(60), h: sp(56), radius: sp(28),
-      color: COLORS.BG_ELEVATED
-    })
-    createWidget(widget.TEXT, {
-      x: sp(30), y: tableY + sp(12), w: SCREEN.WIDTH - sp(60), h: sp(34),
-      text: `⚙ ${t('settings', lang)}`,
-      text_size: FONT.BODY_SIZE,
-      color: COLORS.TEXT_SECONDARY,
-      align_h: align.CENTER_H
-    })
-    settingsBtn.addEventListener(event.CLICK_UP, () => {
-      push({ url: 'page/settings' })
-    })
-
-    // ─── Footer Ornament ─────────────────────────────────────────────
-    tableY += sp(76)
-    createWidget(widget.TEXT, {
-      x: 0, y: tableY, w: SCREEN.WIDTH, h: sp(30),
-      text: `${DECORATIONS.ORNAMENT_L} ${DECORATIONS.SEPARATOR} ${DECORATIONS.ORNAMENT_R}`,
-      text_size: FONT.CAPTION_SIZE,
-      color: COLORS.GOLD_DIM,
-      align_h: align.CENTER_H
+    // ─── Footer ────────────────────────────────────────────────────
+    yOffset += sp(10)
+    createWidget(widget.FILL_RECT, {
+      x: sp(80), y: yOffset, w: SCREEN.WIDTH - sp(160), h: sp(1),
+      color: COLORS.GOLD_DIM
     })
   },
 

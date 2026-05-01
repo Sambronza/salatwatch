@@ -15,18 +15,20 @@
   },
   "runtime": {
     "apiVersion": {
-      "compatible": "2.0",
-      "target": "2.0",
-      "minVersion": "2.0"
+      "compatible": "3.0",
+      "target": "3.0",
+      "minVersion": "3.0"
     },
     "pages": [
+      "page/lang",
       "page/purchase",
       "page/index",
       "page/compass",
       "page/tasbih",
       "page/settings",
       "page/zakat",
-      "page/fasting"
+      "page/fasting",
+      "page/kpay/index.page"
     ],
     "app-side": {
       "path": "app-side/index"
@@ -35,25 +37,29 @@
   "permissions": [
     "device:os.geolocation",
     "device:os.alarm",
-    "device:os.bg_service"
+    "device:os.bg_service",
+    "data:os.device.info",
+    "device:os.local_storage"
   ],
   "defaultLanguage": "en-US",
   "targets": {
     "default": {
-      "designWidth": 480,
+      "designWidth": 466,
       "build": {
-        "apiLevel": "2.0"
+        "apiLevel": "3.0"
       },
       "module": {
         "page": {
           "pages": [
+            "page/lang",
             "page/purchase",
             "page/index",
             "page/compass",
             "page/tasbih",
             "page/settings",
             "page/zakat",
-            "page/fasting"
+            "page/fasting",
+            "page/kpay/index.page"
           ]
         },
         "app-side": {

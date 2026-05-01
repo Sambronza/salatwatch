@@ -13,9 +13,3 @@ selenium-debug.log
 *.ntvs*
 *.njsproj
 *.sln
-*.txt
-qr_data.json
-.git/
-dist/
-node_modules/
-preview_output.txt

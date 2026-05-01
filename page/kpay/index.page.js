@@ -1,13 +1,36 @@
-const { kpay } = getApp()._options.globalData;
-
+// KPay dialog page — safe version
 Page({
   onInit() {
-    kpay.pageInit();
+    try {
+      const app = getApp()
+      const gd = app.globalData || app._options.globalData
+      if (gd && gd.kpay) {
+        gd.kpay.pageInit()
+      }
+    } catch (e) {
+      console.log('KPay pageInit error:', e)
+    }
   },
   build() {
-    kpay.pageBuild();
+    try {
+      const app = getApp()
+      const gd = app.globalData || app._options.globalData
+      if (gd && gd.kpay) {
+        gd.kpay.pageBuild()
+      }
+    } catch (e) {
+      console.log('KPay pageBuild error:', e)
+    }
   },
   onDestroy() {
-    kpay.pageDestroy();
-  },
-});
+    try {
+      const app = getApp()
+      const gd = app.globalData || app._options.globalData
+      if (gd && gd.kpay) {
+        gd.kpay.pageDestroy()
+      }
+    } catch (e) {
+      console.log('KPay pageDestroy error:', e)
+    }
+  }
+})

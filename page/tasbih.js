@@ -11,6 +11,8 @@
 import { createWidget, widget, align, text_style, event, prop } from '@zos/ui'
 // getApp is a global function, no import needed
 import { back } from '@zos/router'
+import { t } from '../utils/i18n'
+import { sp, SCREEN, COLORS, FONT, IMG_ASSETS } from '../utils/constants'
 
 function getGlobalData() {
   const app = getApp()
@@ -60,11 +62,11 @@ Page({
     // Stars
     createWidget(widget.IMG, {
       x: SCREEN.CENTER_X - sp(75), y: sp(34),
-      src: DECORATIONS.STAR
+      src: IMG_ASSETS.STAR
     })
     createWidget(widget.IMG, {
       x: SCREEN.CENTER_X + sp(60), y: sp(34),
-      src: DECORATIONS.STAR
+      src: IMG_ASSETS.STAR
     })
 
     // ─── Decorative Outer Ring ───────────────────────────────────────

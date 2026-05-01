@@ -2,64 +2,99 @@
  * SalatWatch - Purchase Gate Page
  *
  * Shown on first launch if the app has not been unlocked.
- * Uses Kiezepay (Zepp in-app purchase) for a one-time unlock.
+ * Uses Kiezepay (kpay-amazfit) for a one-time unlock via phone companion.
+ *
+ * Trial: 3 days (72 hours) of free use before requiring purchase.
+ * The trial timer is stored locally on the watch. Kiezepay handles
+ * the actual payment flow through the phone's Zepp app.
  */
 
 import { createWidget, widget, align, text_style, event, prop } from '@zos/ui'
 import { replace } from '@zos/router'
-import { setItem, getItem } from '@zos/storage'
+import { localStorage } from '@zos/storage'
 import { vibrate } from '@zos/interaction'
-import { sp, SCREEN, COLORS, FONT, DECORATIONS } from '../utils/constants'
+import { sp, SCREEN, COLORS, FONT, DECORATIONS, IMG_ASSETS } from '../utils/constants'
 
+const LANG_STORAGE_KEY = 'salatwatch_lang'
 const PURCHASE_KEY = 'salatwatch_purchased'
-const PRODUCT_ID = 'salatwatch_full_unlock' // Must match the product ID in Kiezepay portal
+
+const TRIAL_DURATION_MS = 72 * 60 * 60 * 1000 // 72 hours (3 days)
+const FIRST_LAUNCH_KEY = 'salatwatch_first_launch'
+
+// Kiezepay stores license status in localStorage with this key
+const KPAY_STATUS_KEY = 'KPAY_STATUS'
 
 function checkAlreadyPurchased() {
   try {
-    return getItem(PURCHASE_KEY) === '1'
+    // Check our own flag first
+    if (localStorage.getItem(PURCHASE_KEY) === '1') {
+      return true
+    }
+
+    // Check if Kiezepay has marked this as licensed
+    const kpayStatus = localStorage.getItem(KPAY_STATUS_KEY)
+    if (kpayStatus === 'licensed') {
+      // Sync our flag so future checks are instant
+      localStorage.setItem(PURCHASE_KEY, '1')
+      return true
+    }
+
+    // Check if Kiezepay reports an active trial
+    if (kpayStatus === 'trial') {
+      return true
+    }
+
+    // Fall back to our own local trial timer
+    let firstLaunch = localStorage.getItem(FIRST_LAUNCH_KEY)
+    const now = Date.now()
+
+    if (!firstLaunch) {
+      // First time opening the app! Start the 3-day trial.
+      localStorage.setItem(FIRST_LAUNCH_KEY, now.toString())
+      return true // Bypass the buy screen
+    }
+
+    firstLaunch = parseInt(firstLaunch, 10)
+    if (now - firstLaunch < TRIAL_DURATION_MS) {
+      return true // Still within the 3-day trial
+    }
+
+    // Trial expired, force purchase
+    return false
+
   } catch (e) {
     return false
   }
 }
 
-function markAsPurchased() {
-  try {
-    setItem(PURCHASE_KEY, '1')
-  } catch (e) {}
-}
-
 function launchApp() {
+  try {
+    const savedLang = localStorage.getItem(LANG_STORAGE_KEY)
+    if (savedLang) {
+      const app = getApp()
+      const gd = app.globalData || app._options.globalData
+      if (gd) gd.language = savedLang
+    }
+  } catch (e) {}
   replace({ url: 'page/index' })
 }
 
+/**
+ * Trigger the Kiezepay purchase flow via the kpay-amazfit library.
+ * This sends a message to the phone companion, which opens the
+ * Kiezepay checkout page in the user's browser.
+ */
 function attemptPurchase(statusText) {
   try {
-    statusText.setProperty(prop.TEXT, 'Connecting to store...')
-    const { Pay } = require('@zos/pay')
-    const pay = new Pay()
-
-    pay.purchase({
-      productId: PRODUCT_ID,
-      callback: (result) => {
-        if (result && result.code === 0) {
-          // Purchase successful
-          markAsPurchased()
-          try { vibrate({ type: 23 }) } catch (e) {}
-          statusText.setProperty(prop.TEXT, 'Unlocked! Loading...')
-          setTimeout(() => launchApp(), 800)
-        } else if (result && result.code === 1) {
-          // Already purchased (restore)
-          markAsPurchased()
-          launchApp()
-        } else {
-          // Cancelled or failed
-          statusText.setProperty(prop.TEXT, 'Purchase cancelled. Tap to try again.')
-        }
-      }
-    })
+    const { kpay } = getApp()._options.globalData
+    if (kpay) {
+      statusText.setProperty(prop.TEXT, 'Opening payment on your phone...')
+      kpay.startPurchase()
+    } else {
+      statusText.setProperty(prop.TEXT, 'Store unavailable. Try on device.')
+    }
   } catch (e) {
-    // Kiezepay not available (simulator / older firmware)
-    console.log('Pay module not available:', e)
+    console.log('Purchase error:', e)
     statusText.setProperty(prop.TEXT, 'Store unavailable. Try on device.')
   }
 }
@@ -70,7 +105,7 @@ Page({
   },
 
   build() {
-    // If already purchased, skip straight to the main page
+    // If already purchased or in trial, skip straight to the main page
     if (checkAlreadyPurchased()) {
       launchApp()
       return
@@ -95,7 +130,7 @@ Page({
     createWidget(widget.IMG, {
       x: (SCREEN.WIDTH - sp(64)) / 2,
       y: sp(48),
-      src: DECORATIONS.CRESCENT
+      src: IMG_ASSETS.CRESCENT
     })
 
     // ─── App Name ─────────────────────────────────────────────────
@@ -193,7 +228,6 @@ Page({
 
     restoreBtn.addEventListener(event.CLICK_UP, () => {
       statusText.setProperty(prop.TEXT, 'Checking previous purchase...')
-      // Attempt a silent purchase — Kiezepay returns code 1 if already purchased
       attemptPurchase(statusText)
     })
   },
