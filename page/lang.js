@@ -30,7 +30,7 @@ Page({
       if (saved) {
         const gd = getGlobalData()
         if (gd) gd.language = saved
-        replace({ url: 'page/index' })
+        replace({ url: 'page/purchase' })
         return
       }
     } catch (e) {
@@ -123,7 +123,7 @@ Page({
         } catch (e) {
           console.log('lang: save error', e)
         }
-        replace({ url: 'page/index' })
+        replace({ url: 'page/purchase' })
       })
     })
 

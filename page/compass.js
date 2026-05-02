@@ -8,6 +8,7 @@
 import { createWidget, widget, align, text_style, event, prop } from '@zos/ui'
 import { back } from '@zos/router'
 import { t } from '../utils/i18n'
+import { calculateQiblaDirection, distanceToKaaba } from '../utils/qibla'
 import { sp, SCREEN, COLORS, FONT, DECORATIONS, IMG_ASSETS } from '../utils/constants'
 
 function getGlobalData() {

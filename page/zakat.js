@@ -18,6 +18,11 @@ function getGlobalData() {
 
 let assets = 0
 
+function updateZakat(assetsLabel, zakatLabel, lang) {
+  assetsLabel.setProperty(prop.TEXT, String(assets))
+  zakatLabel.setProperty(prop.TEXT, `${t('totalZakat', lang)}: ${Math.floor(assets * 0.025)}`)
+}
+
 Page({
   onInit() {
     console.log('Zakat page initialized')
@@ -89,7 +94,7 @@ Page({
       color: COLORS.TEXT_PRIMARY,
       click_func: () => {
         assets += 100
-        this.update(assetsLabel, zakatLabel, lang)
+        updateZakat(assetsLabel, zakatLabel, lang)
       }
     })
 
@@ -103,7 +108,7 @@ Page({
       color: COLORS.TEXT_PRIMARY,
       click_func: () => {
         assets += 1000
-        this.update(assetsLabel, zakatLabel, lang)
+        updateZakat(assetsLabel, zakatLabel, lang)
       }
     })
 
@@ -117,7 +122,7 @@ Page({
       color: COLORS.TEXT_SECONDARY,
       click_func: () => {
         assets = 0
-        this.update(assetsLabel, zakatLabel, lang)
+        updateZakat(assetsLabel, zakatLabel, lang)
       }
     })
 
@@ -130,10 +135,5 @@ Page({
       normal_color: 0x00000000,
       click_func: () => back()
     })
-  },
-
-  update(assetsLabel, zakatLabel, lang) {
-    assetsLabel.setProperty(prop.TEXT, String(assets))
-    zakatLabel.setProperty(prop.TEXT, `${t('totalZakat', lang)}: ${Math.floor(assets * 0.025)}`)
   }
 })

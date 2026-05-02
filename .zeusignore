@@ -28,3 +28,13 @@ Thumbs.db
 
 **/node_modules/**
 node_modules
+dist/
+*.zab
+temp_*
+kpay_*
+verify_zab/
+docs/
+official_prune.js
+custom_prune.js
+prune_sc.js
+_rebuild/

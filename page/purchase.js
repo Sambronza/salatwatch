@@ -12,7 +12,7 @@
 import { createWidget, widget, align, text_style, event, prop } from '@zos/ui'
 import { replace } from '@zos/router'
 import { localStorage } from '@zos/storage'
-import { vibrate } from '@zos/interaction'
+// vibrate is lazy-loaded to avoid crash on unsupported devices
 import { sp, SCREEN, COLORS, FONT, DECORATIONS, IMG_ASSETS } from '../utils/constants'
 
 const LANG_STORAGE_KEY = 'salatwatch_lang'
@@ -222,7 +222,7 @@ Page({
 
     // ─── Event Listeners ──────────────────────────────────────────
     unlockBtn.addEventListener(event.CLICK_UP, () => {
-      try { vibrate({ type: 2 }) } catch (e) {}
+      try { const motor = require('@zos/interaction').createMotor(); if (motor) motor.start(); } catch (e) {}
       attemptPurchase(statusText)
     })
 

@@ -12,19 +12,10 @@
     "preview": "zeus preview"
   },
   "devDependencies": {
-    "@zeppos/zeus-cli": "^1.9.0",
-    "ora": "^9.3.0",
-    "zeppos-app-utils": "^1.0.0"
-  },
-  "overrides": {
-    "axios": "^1.7.4",
-    "lodash": "^4.17.21",
-    "esbuild": "^0.25.0",
-    "got": "^11.8.5",
-    "tmp": "^0.2.3",
-    "flatted": "^3.4.1"
+    "@zeppos/zeus-cli": "1.9.0"
   },
   "dependencies": {
+    "jszip": "^3.10.1",
     "kpay-amazfit": "^2.0.4"
   }
 }
