@@ -11,11 +11,8 @@
     "build": "zeus build",
     "preview": "zeus preview"
   },
-  "devDependencies": {
-    "@zeppos/zeus-cli": "1.9.0"
-  },
   "dependencies": {
-    "jszip": "^3.10.1",
+    "@zeppos/zml": "^0.0.43",
     "kpay-amazfit": "^2.0.4"
   }
 }

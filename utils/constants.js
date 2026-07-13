@@ -2,13 +2,13 @@
  * Islamic Design Constants & Theme - Multi-Device Support
  *
  * Color palette inspired by traditional Islamic art and architecture.
+ * v2.0: Added Iqama amber theme, countdown sizes, larger fonts.
  */
 
 import { getDeviceInfo } from '@zos/device'
 
 // Get dynamic device info
 const { width, height } = getDeviceInfo()
-const isRound = true // Most Zepp devices are round, but we can detect it if needed
 
 // Scale factor relative to original 480x480 design
 const SCALE = width / 480
@@ -55,21 +55,35 @@ export const COLORS = {
   // Compass
   COMPASS_RING:   0x0d9f6e,
   COMPASS_NEEDLE: 0xd4a84b,
+  COMPASS_N:      0xe85050,
+  COMPASS_TICK:   0x5a6a7a,
 
   // Tasbih
   TASBIH_CIRCLE:  0x0d9f6e,
-  TASBIH_COUNT:   0xf0d078
+  TASBIH_COUNT:   0xf0d078,
+
+  // v2.0: Iqama amber theme
+  IQAMA_AMBER:    0xe89040,
+  IQAMA_BG:       0x2a1a08,
+  IQAMA_GLOW:     0xf0a050,
+  IQAMA_TEXT:     0xffd090,
+
+  // Swipe indicator
+  SWIPE_DOT:      0x3a4a58,
+  SWIPE_DOT_ACTIVE: 0xd4a84b
 }
 
-// ─── Typography (Scaled) ───────────────────────────────────────────────
+// ─── Typography (Scaled, larger for v2.0) ──────────────────────────────
 export const FONT = {
-  TITLE_SIZE:     sp(32),
-  HEADER_SIZE:    sp(26),
-  BODY_SIZE:      sp(22),
-  CAPTION_SIZE:   sp(18),
-  SMALL_SIZE:     sp(14),
+  TITLE_SIZE:     sp(34),
+  HEADER_SIZE:    sp(28),
+  BODY_SIZE:      sp(24),
+  CAPTION_SIZE:   sp(20),
+  SMALL_SIZE:     sp(16),
   COUNTER_SIZE:   sp(64),
-  TIME_SIZE:      sp(48)
+  TIME_SIZE:      sp(48),
+  COUNTDOWN_SIZE: sp(42),   // v2.0: for the live countdown
+  TIMETABLE_SIZE: sp(22)    // v2.0: for prayer timetable rows
 }
 
 // ─── Layout (Dynamic) ─────────────────────────────────────────────────
@@ -96,8 +110,8 @@ export const PRAYER_COLORS = {
 // ─── Islamic Art Decorative Assets (PNG) ─────────────────────────────
 // Image asset paths — use ONLY with widget.IMG, never in text: properties
 export const IMG_ASSETS = {
-  STAR:      'star.png',
-  CRESCENT:  'crescent.png'
+  STAR:      'icon.png',
+  CRESCENT:  'icon.png'
 }
 
 // Text-safe decoration strings (empty to avoid rendering filenames as text)

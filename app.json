@@ -5,8 +5,8 @@
     "appName": "SalatWatch",
     "appType": "app",
     "version": {
-      "code": 2,
-      "name": "1.0.1"
+      "code": 21,
+      "name": "2.2.0"
     },
     "icon": "icon.png",
     "description": "Islamic Prayer App",
@@ -20,26 +20,28 @@
       "minVersion": "2.0"
     },
     "pages": [
-      "page/lang",
-      "page/purchase",
       "page/index",
       "page/compass",
       "page/tasbih",
       "page/settings",
-      "page/zakat",
-      "page/fasting",
+      "page/mosque",
+      "page/timetable",
+      "page/tools",
+      "page/lang",
       "page/kpay/index.page"
     ],
     "app-side": {
       "path": "app-side/index"
+    },
+    "setting": {
+      "path": "setting/index"
     }
   },
   "permissions": [
     "device:os.geolocation",
-    "device:os.alarm",
-    "device:os.bg_service",
+    "device:os.local_storage",
     "data:os.device.info",
-    "device:os.local_storage"
+    "device:os.compass"
   ],
   "defaultLanguage": "en-US",
   "targets": {
@@ -51,35 +53,36 @@
       "module": {
         "page": {
           "pages": [
-            "page/lang",
-            "page/purchase",
             "page/index",
             "page/compass",
             "page/tasbih",
             "page/settings",
-            "page/zakat",
-            "page/fasting",
+            "page/mosque",
+            "page/timetable",
+            "page/tools",
+            "page/lang",
             "page/kpay/index.page"
+          ]
+        },
+        "app-widget": {
+          "widgets": [
+            { 
+              "path": "page/widget",
+              "icon": "icon.png",
+              "name": "SalatWatch"
+            }
           ]
         },
         "app-side": {
           "path": "app-side/index"
+        },
+        "setting": {
+          "path": "setting/index"
         }
       },
       "platforms": [
         { "name": "254", "deviceSource": 7930112 },
-        { "name": "254", "deviceSource": 7930113 },
-        { "name": "254", "deviceSource": 7864577 },
-        { "name": "229", "deviceSource": 229 },
-        { "name": "229", "deviceSource": 230 },
-        { "name": "229", "deviceSource": 6095106 },
-        { "name": "418", "deviceSource": 418 },
-        { "name": "418", "deviceSource": 419 },
-        { "name": "390", "deviceSource": 7995648 },
-        { "name": "390", "deviceSource": 7995649 },
-        { "name": "250", "deviceSource": 250 },
-        { "name": "250", "deviceSource": 251 },
-        { "name": "394", "deviceSource": 394 }
+        { "name": "254", "deviceSource": 7930113 }
       ]
     }
   }

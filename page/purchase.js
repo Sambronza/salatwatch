@@ -107,7 +107,10 @@ Page({
   build() {
     // If already purchased or in trial, skip straight to the main page
     if (checkAlreadyPurchased()) {
-      launchApp()
+      createWidget(widget.FILL_RECT, { x: 0, y: 0, w: SCREEN.WIDTH, h: SCREEN.HEIGHT, color: 0x000000 })
+      setTimeout(() => {
+        launchApp()
+      }, 50)
       return
     }
 
